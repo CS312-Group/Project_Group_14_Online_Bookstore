@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Details</title>
+</head>
+<body>
+    <h1>Book Information</h1>
+
+    <div id="book-info">
+        <h2><%= title %></h2>
+        <% if (image) { %>
+            <img src="<%= image %>" alt="<%= title %>" style="max-width: 200px;">
+        <% } else { %>
+            <p>No image available for this book.</p>
+        <% } %>
+    </div>
+</body>
+</html>
