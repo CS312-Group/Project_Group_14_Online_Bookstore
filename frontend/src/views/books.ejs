@@ -8,13 +8,35 @@
 <body>
     <h1>Book Information</h1>
 
-    <div id="book-info">
-        <h2><%= title %></h2>
-        <% if (image) { %>
-            <img src="<%= image %>" alt="<%= title %>" style="max-width: 200px;">
-        <% } else { %>
-            <p>No image available for this book.</p>
-        <% } %>
+    <div id="books-list">
+        <% books.forEach(book => { %>
+            <div class="book-info">
+                <h2><%= book.title %></h2>
+                <% if (book.image) { %>
+                    <img src="<%= book.image %>" alt="<%= book.title %>" style="max-width: 200px;">
+                <% } else { %>
+                    <p>No image available for this book.</p>
+                <% } %>
+
+                 <!-- Favorite button form -->
+                 <% if (currentUser) { %>
+                    <form action="/favorite" method="POST">
+                        <input type="hidden" name="book_id" value="<%= book.id %>">
+                        <button type="submit">Favorite</button>
+                    </form>
+                <% } else { %>
+                    <p>Log in to add to favorites.</p>
+                <% } %>
+
+                <!-- Display users who favorited the book -->
+                <% if (book.favorited_by && book.favorited_by.length > 0) { %>
+                    <p>Favorited by users: <%= book.favorited_by.join(', ') %></p>
+                <% } else { %>
+                    <p>No users have favorited this book yet.</p>
+                <% } %>
+            </div>
+            <hr>
+        <% }); %>
     </div>
 </body>
 </html>
