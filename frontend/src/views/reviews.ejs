@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Reviews</title>
+</head>
+<body>
+    <h1>Reviews for "<%= title %>"</h1>
+    <div id="reviews-section">
+        <% if (reviews && reviews.length > 0) { %>
+            <h2>Existing Reviews:</h2>
+            <ul>
+                <% reviews.forEach(review => { %>
+                    <li>
+                        <strong>Author:</strong> <%= review.author %><br>
+                        <strong>Title:</strong> <%= review.title %><br>
+                        <strong>Review:</strong> <%= review.review_content %>
+                    </li>
+                    <hr>
+                <% }) %>
+            </ul>
+        <% } else { %>
+            <p>No reviews available for this book yet.</p>
+        <% } %>
+    </div>
+    <div id="new-review-form">
+        <h2>Submit a New Review</h2>
+        <form action="/books/<%= bookId %>/reviews" method="POST">
+            <label for="author">Author:</label>
+            <input type="text" id="author" name="author" required><br>
+
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" required><br>
+
+            <label for="review_content">Review:</label>
+            <textarea id="review_content" name="review_content" required></textarea><br>
+
+            <button type="submit">Submit Review</button>
+        </form>
+    </div>
+</body>
+</html>

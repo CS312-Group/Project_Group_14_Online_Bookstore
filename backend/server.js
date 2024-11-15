@@ -138,6 +138,55 @@ app.get('/books', async (req, res) => {
     }
 });
 
+// get the reviews under a given book
+app.get('/books/:bookId/reviews', async (req, res) => {
+    // get the book id for the reviews
+    const bookId = parseInt(req.params.bookId);
+
+    try {
+        // fetch the book title and reviews for the book id
+        const bookQuery = await db.query("SELECT title FROM books WHERE id = $1", [bookId]);
+        const reviewsQuery = await db.query("SELECT * FROM reviews WHERE book_id = $1", [bookId]);
+
+        const title = bookQuery.rows[0]?.title || "Unknown Book";
+        const reviews = reviewsQuery.rows;
+
+        // render the reviews page
+        res.render('../../frontend/src/views/reviews.ejs', { title: title, reviews: reviews, book_id: bookId });
+    } catch (error) {
+        console.error("Error fetching reviews:", error);
+        res.status(500).send("Error fetching reviews");
+    }
+});
+
+app.post('/books/:bookId/reviews', async (req, res) => {
+    const bookId = parseInt(req.params.bookId);
+    const { author, title, review_content } = req.body;
+
+    try {
+        // insert a new review
+        await db.query(
+            "INSERT INTO reviews (author, title, review_content, book_id) VALUES ($1, $2, $3, $4)",
+            [author, title, review_content, bookId]
+        );
+
+        // get all of the reviews for that book
+        const result = await db.query(
+            "SELECT * FROM reviews WHERE book_id = $1",
+            [bookId]
+        );
+        const reviews = result.rows;  // This holds all reviews for the book
+
+        // render the review page
+        res.render('../../frontend/src/views/reviews.ejs', { title: title, reviews: reviews, book_id: bookId });
+    } catch (error) {
+        console.error("Error adding review:", error);
+        res.status(500).send("Error adding review");
+    }
+});
+
+
+
 //this is what the udemy videos used to show the server was running so I added it
 app.listen(port,() => {
     console.log(`Server running on port ${port}.`);
