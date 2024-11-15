@@ -2,10 +2,13 @@ import bodyParser from "body-parser";
 import express from "express";
 import pg from "pg";
 import axios from "axios";
+import dotenv from "dotenv";
+
 
 //declaration of variables that are used in the file
 const app = express();
 const port = 3000;
+dotenv.config({ path: '../.env' });
 
 // current user lets us know if someone is logged in and who
 let currentUser = null;
@@ -15,7 +18,7 @@ const db = new pg.Client({
     user: "postgres",
     host: "localhost",
     database: "Library",
-    password: "12345",
+    password: process.env.DB_PASSWORD,
     port: 5432,
 });
 
@@ -64,7 +67,7 @@ app.post("/sign_in", async (req, res) => {
     else{
         // this is using the same logic from mini project 3 so we dont have a sign_in.ejs yet but it should work
         // otherwise rerender the page with an error message
-        //res.render('sign_in.ejs', { error: 'Invalid username or password. Please try again.' });
+        // res.render('sign_in.ejs', { error: 'Invalid username or password. Please try again.' });
     }
 });
 
@@ -100,7 +103,7 @@ app.get('/books', async (req, res) => {
         const apiId = queryResult.rows[0].api_id;
 
         // uses that id to call the api
-        const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${apiId}?key=AIzaSyCK6Z28MVsyIAg7QhA5AYNLPWdv0xjNekU`);
+        const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${apiId}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
 
         // gets the book title from the response
         const bookTitle = response.data.volumeInfo.title;
