@@ -4,7 +4,6 @@ import pg from "pg";
 import axios from "axios";
 import dotenv from "dotenv";
 
-
 //declaration of variables that are used in the file
 const app = express();
 const port = 3000;
@@ -45,6 +44,16 @@ async function checkValidUser(username, password){
     return parseInt(queryResult.rows[0].count) > 0;
 }
 
+// Renders the signup page
+app.get("/signup", (req, res) => {
+    res.render("../../frontend/src/views/signup.ejs", { error: null });
+});
+
+// Renders the signin page
+app.get("/signin", (req, res) => {
+    res.render("../../frontend/src/views/signin.ejs", { error: null });
+});
+
 // this will log the user out
 app.post("/logout", (req, res) => {
     // sets the current user to null to effectively log them out
@@ -53,15 +62,15 @@ app.post("/logout", (req, res) => {
     res.redirect('/');
 
     // Uncomment when this is created 
-    // res.redirect('sign_in.ejs');
+    res.redirect('../../frontend/src/views/sign_in.ejs');
 });
 
 // sign in functionality
-app.post("/sign_in", async (req, res) => {
+app.post("/signin", async (req, res) => {
     // check if the user is real with username and password
     if( await checkValidUser(req.body["username"], req.body["password"])){
         // set the current user to be the user that logged in with a database query
-        currentUser = await db.query("SELECT user_id FROM users WHERE name = $1 AND password = $2", [req.body["username"], req.body["password"]]);
+        currentUser = await db.query("SELECT id FROM users WHERE username = $1 AND password = $2", [req.body["username"], req.body["password"]]);
         // set the current user to their unique user id
         currentUser = currentUser.rows[0].user_id;
         // rerender the page
@@ -70,24 +79,24 @@ app.post("/sign_in", async (req, res) => {
     else{
         // this is using the same logic from mini project 3 so we dont have a sign_in.ejs yet but it should work
         // otherwise rerender the page with an error message
-        // res.render('sign_in.ejs', { error: 'Invalid username or password. Please try again.' });
+        res.render('../../frontend/src/views/signin.ejs', { error: 'Invalid username or password. Please try again.' });
     }
 });
 
 // sign up functionality
-app.post("/sign_up", async (req, res) => {
+app.post("/signup", async (req, res) => {
     // check if the username already exists
     if(await userNameExists(req.body["username"])){
         // set the error value to true
-        // var error = 1;
+        var error = 1;
         // rerender the sign up page with an error message
-        // res.render("sign_up.ejs",{error: error})
+        res.render("../../frontend/src/views/signup.ejs",{error: error})
     }
     // if the user doesnt already exist, submit them into the database
     else{
         await db.query("INSERT INTO users (username, password) VALUES ($1, $2)", [req.body["username"], req.body["password"]]);
         // render the sign in page now so the user can sign in
-        //res.render("sign_in.ejs");
+        res.render("../../frontend/src/views/signin.ejs");
     }
 });
 
