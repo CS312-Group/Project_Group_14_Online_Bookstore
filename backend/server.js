@@ -69,22 +69,23 @@ app.post("/logout", (req, res) => {
 
 // sign in functionality
 app.post("/signin", async (req, res) => {
-    // check if the user is real with username and password
-    if( await checkValidUser(req.body["username"], req.body["password"])){
-        // set the current user to be the user that logged in with a database query
+    try {
         const result = await db.query("SELECT id FROM users WHERE username = $1 AND password = $2", [req.body["username"], req.body["password"]]);
-        // set the current user to their unique user id
-        currentUser = {
-            id: result.rows[0].user_id,
-            name: result.rows[0].name,
-        };
-        // rerender the page
-        res.redirect('/books');
-    }
-    else{
-        // this is using the same logic from mini project 3 so we dont have a sign_in.ejs yet but it should work
-        // otherwise rerender the page with an error message
-        res.render('../../frontend/src/views/signin.ejs', { error: 'Invalid username or password. Please try again.' });
+
+        if (result.rowCount > 0) {
+            // Set currentUser for the single-user case
+            currentUser = {
+                id: result.rows[0].id,
+                name: result.rows[0].username,
+            };
+
+            res.redirect("/books");
+        } else {
+            res.render('../../frontend/src/views/signin.ejs', { error: 'Invalid username or password. Please try again.' });
+        }
+    } catch (error) {
+        console.error("Error during sign-in:", error);
+        res.status(500).send("Error during sign-in");
     }
 });
 
@@ -96,10 +97,18 @@ app.post('/favorite', async (req, res) => {
 
     const { book_id } = req.body;
 
+    console.log("bookID: " + book_id);
+    console.log("currentUser.id: " + currentUser.id)
+
     try {
         // Add the current user's ID to the favorited_by array for the specified book
+        /* EXAMPLE:
+        UPDATE books
+        SET favorited_by = array_append(favorited_by, 5)
+        WHERE id = 1 AND NOT (5 = ANY(favorited_by));
+        */
         await db.query(
-            "UPDATE books SET favorited_by = array_append(favorited_by, $1::integer) WHERE id = $2 AND NOT $1 = ANY(favorited_by)",
+            "UPDATE books SET favorited_by = array_append(favorited_by, $1) WHERE id = $2 AND NOT ($1 = ANY(favorited_by))",
             [currentUser.id, book_id]
         );
 
