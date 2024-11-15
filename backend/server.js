@@ -3,11 +3,16 @@ import express from "express";
 import pg from "pg";
 import axios from "axios";
 import dotenv from "dotenv";
+import path from 'path';
+import { fileURLToPath } from 'url';
+;
 
 //declaration of variables that are used in the file
 const app = express();
 const port = 3000;
 dotenv.config({ path: '../.env' });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // current user lets us know if someone is logged in and who
 let currentUser = null;
@@ -27,8 +32,7 @@ db.connect().then(()=>console.log("Connected")).catch((err)=>console.log(err));
 //this allows the use of the body-parser middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//this allows the use of the style sheet
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, '../frontend/src/public')));
 
 // function to check if a username already exists
 async function userNameExists(username) {
