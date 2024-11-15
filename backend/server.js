@@ -51,6 +51,9 @@ app.post("/logout", (req, res) => {
     currentUser = null;
     // redirects to rerender the home page
     res.redirect('/');
+
+    // Uncomment when this is created 
+    // res.redirect('sign_in.ejs');
 });
 
 // sign in functionality
