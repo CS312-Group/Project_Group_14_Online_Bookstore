@@ -62,11 +62,9 @@ app.get("/signin", (req, res) => {
 app.post("/logout", (req, res) => {
     // sets the current user to null to effectively log them out
     currentUser = null;
-    // redirects to rerender the home page
-    res.redirect('/');
 
     // Uncomment when this is created 
-    res.redirect('../../frontend/src/views/sign_in.ejs');
+    res.redirect('../../frontend/src/views/signin.ejs');
 });
 
 // sign in functionality
@@ -74,16 +72,41 @@ app.post("/signin", async (req, res) => {
     // check if the user is real with username and password
     if( await checkValidUser(req.body["username"], req.body["password"])){
         // set the current user to be the user that logged in with a database query
-        currentUser = await db.query("SELECT id FROM users WHERE username = $1 AND password = $2", [req.body["username"], req.body["password"]]);
+        const result = await db.query("SELECT id FROM users WHERE username = $1 AND password = $2", [req.body["username"], req.body["password"]]);
         // set the current user to their unique user id
-        currentUser = currentUser.rows[0].user_id;
+        currentUser = {
+            id: result.rows[0].user_id,
+            name: result.rows[0].name,
+        };
         // rerender the page
-        res.redirect('/');
+        res.redirect('/books');
     }
     else{
         // this is using the same logic from mini project 3 so we dont have a sign_in.ejs yet but it should work
         // otherwise rerender the page with an error message
         res.render('../../frontend/src/views/signin.ejs', { error: 'Invalid username or password. Please try again.' });
+    }
+});
+
+// Route to handle Favorites for Books
+app.post('/favorite', async (req, res) => {
+    if (!currentUser) {
+        return res.status(403).send("You must be logged in to favorite a book.");
+    }
+
+    const { book_id } = req.body;
+
+    try {
+        // Add the current user's ID to the favorited_by array for the specified book
+        await db.query(
+            "UPDATE books SET favorited_by = array_append(favorited_by, $1::integer) WHERE id = $2 AND NOT $1 = ANY(favorited_by)",
+            [currentUser.id, book_id]
+        );
+
+        res.redirect('/books');
+    } catch (error) {
+        console.error("Error adding favorite:", error);
+        res.status(500).send("Error adding favorite");
     }
 });
 
@@ -113,25 +136,25 @@ app.get('/', (req, res) => {
 // as well as shows how to use the api call to get the information about the books
 app.get('/books', async (req, res) => {
     try {
-        // uses axios to get the database info
-        const queryResult = await db.query("SELECT api_id FROM books WHERE id = 1");
-        // finds the id of the api call specifically
-        const apiId = queryResult.rows[0].api_id;
+        // Fetch all books from the database
+        const queryResult = await db.query("SELECT * FROM books");
 
-        // uses that id to call the api
-        const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${apiId}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
+        // Loop through each book and fetch details from Google Books API
+        const books = await Promise.all(
+            queryResult.rows.map(async (book) => {
+                const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${book.api_id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
+                return {
+                    id: book.id, // Include book ID for form submission
+                    title: response.data.volumeInfo.title,
+                    image: response.data.volumeInfo.imageLinks?.thumbnail || null,
+                    favorited_by: book.favorited_by || []
+                };
+            })
+        );
 
-        // gets the book title from the response
-        const bookTitle = response.data.volumeInfo.title;
-        // gets the thumbnail from the response
-        const bookImage = response.data.volumeInfo.imageLinks?.thumbnail;
+        // Render the books page with all book data and pass currentUser
+        res.render('../../frontend/src/views/books.ejs', { books, currentUser });
 
-        // renders the books page to show that it got the title and the image
-        // this is very subject to change currently just for testing connections and routes.
-        // shows we can get the book data and render it woooooo
-        res.render('../../frontend/src/views/books.ejs', { title: bookTitle, image: bookImage });
-
-    // catches if there are errors
     } catch (error) {
         console.error("Error fetching data from Google Books API:", error);
         res.status(500).send("Error fetching data");
