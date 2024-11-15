@@ -217,6 +217,36 @@ app.post('/books/:bookId/reviews', async (req, res) => {
     }
 });
 
+app.get('/books-by-category/:category', async (req, res) => {
+    const { category } = req.params;
+    const matchingBooks = [];
+    const queryResult = await db.query("SELECT api_id FROM books");
+    const books = queryResult.rows;
+    let index = 0;
+  
+    try {
+      // Iterate over the book IDs
+      for (const bookId of books) {
+        const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${bookId.api_id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
+        const bookData = response.data;
+  
+        // Check if the categories array contains the desired category
+        const categories = bookData.volumeInfo?.categories || [];
+        if (categories.some((categoryToCheck) => categoryToCheck.includes(category))) {
+          matchingBooks.push(bookData);
+        }
+      }
+      matchingBooks.forEach((book) => {
+        console.log(book.id); // Print the id of each book
+    });
+      // Send the matching books as the response
+      res.status(200).json(matchingBooks);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'An error occurred while fetching book data.' });
+    }
+  });
+
 
 
 //this is what the udemy videos used to show the server was running so I added it
