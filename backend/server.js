@@ -15,7 +15,7 @@ const db = new pg.Client({
     user: "postgres",
     host: "localhost",
     database: "Library",
-    password: "12345",
+    password: "vander2003",
     port: 5432,
 });
 
@@ -48,6 +48,9 @@ app.post("/logout", (req, res) => {
     currentUser = null;
     // redirects to rerender the home page
     res.redirect('/');
+
+    // Uncomment when this is created 
+    // res.redirect('sign_in.ejs');
 });
 
 // sign in functionality
