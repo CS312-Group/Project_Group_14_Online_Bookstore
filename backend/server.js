@@ -5,7 +5,7 @@ import axios from "axios";
 import dotenv from "dotenv";
 import path from 'path';
 import { fileURLToPath } from 'url';
-;
+
 
 //declaration of variables that are used in the file
 const app = express();
@@ -37,13 +37,6 @@ app.use(express.static(path.join(__dirname, '../frontend/src/public')));
 // function to check if a username already exists
 async function userNameExists(username) {
     const queryResult = await db.query("SELECT COUNT(*) FROM users WHERE username = $1", [username]);
-    //use parseInt to turn the string into an integer
-    return parseInt(queryResult.rows[0].count) > 0;
-}
-
-// fucntion to check if a user is valid on login
-async function checkValidUser(username, password){
-    const queryResult = await db.query("SELECT COUNT(*) FROM users WHERE username = $1 AND password = $2", [username, password]);
     //use parseInt to turn the string into an integer
     return parseInt(queryResult.rows[0].count) > 0;
 }
@@ -153,7 +146,7 @@ app.get('/books', async (req, res) => {
             queryResult.rows.map(async (book) => {
                 const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${book.api_id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
                 return {
-                    id: book.id, // Include book ID for form submission
+                    id: book.id, 
                     title: response.data.volumeInfo.title,
                     image: response.data.volumeInfo.imageLinks?.thumbnail || null,
                     favorited_by: book.favorited_by || []
@@ -207,7 +200,7 @@ app.post('/books/:bookId/reviews', async (req, res) => {
             "SELECT * FROM reviews WHERE book_id = $1",
             [bookId]
         );
-        const reviews = result.rows;  // This holds all reviews for the book
+        const reviews = result.rows;
 
         // render the review page
         res.render('../../frontend/src/views/reviews.ejs', { title: title, reviews: reviews, book_id: bookId });
@@ -237,7 +230,7 @@ app.get('/books-by-category/:category', async (req, res) => {
         }
       }
       matchingBooks.forEach((book) => {
-        console.log(book.id); // Print the id of each book
+        console.log(book.id);
     });
       // Send the matching books as the response
       res.status(200).json(matchingBooks);
