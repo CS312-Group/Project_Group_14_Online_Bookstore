@@ -57,7 +57,7 @@ app.post("/logout", (req, res) => {
     currentUser = null;
 
     // Uncomment when this is created 
-    res.redirect('../../frontend/src/views/signin.ejs');
+    res.render("../../frontend/src/views/signin.ejs", { error: null });
 });
 
 // sign in functionality
@@ -131,7 +131,11 @@ app.post("/signup", async (req, res) => {
 
 // Define a route to render an EJS view with a message
 app.get('/', (req, res) => {
-    res.render('../../frontend/src/views/index.ejs', { message: 'Hello World from the backend!' });
+    if(currentUser === null)
+    {
+        res.render('../../frontend/src/views/signin.ejs');
+    }
+    res.render('../../frontend/src/views/signin.ejs');
 });
 
 // this was currently set up for testing but shows how to call the database for the books table
