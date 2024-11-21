@@ -50,3 +50,143 @@
 a {
     text-decoration: none; 
 }
+
+
+/* General Reset */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+}
+
+/* Header */
+h1 {
+    text-align: center;
+    color: #333;
+    padding: 20px;
+    background-color: #f4f4f4;
+    border-bottom: 2px solid #ddd;
+}
+
+/* Books List Container */
+#books-list {
+    width: 80%;
+    margin: 20px auto;
+}
+
+/* Book Info Container */
+.book-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Book Details Section */
+.book-details {
+    flex: 1;
+    padding-right: 20px;
+}
+
+/* Book Image Section */
+.book-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+}
+
+/* Book Image Thumbnail */
+.book-image img {
+    max-width: 100%;
+    max-height: 150px;
+    display: block;
+    border-radius: 4px;
+}
+
+/* Book Actions Section */
+.book-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Button Styling */
+button {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+
+/* Separator */
+hr {
+    border: none;
+    border-top: 1px solid #ddd;
+}
+
+/* Optional Filter/Search Box */
+#search-bar {
+    width: 80%;
+    margin: 0 auto 20px auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#search-bar input[type="text"] {
+    width: 70%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+#search-bar button {
+    padding: 8px 12px;
+    border: none;
+    background-color: #007BFF;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#search-bar button:hover {
+    background-color: #0056b3;
+}
+
+/* Logout Button */
+.logout-button-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+.logout-button {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #c82333;
+}
