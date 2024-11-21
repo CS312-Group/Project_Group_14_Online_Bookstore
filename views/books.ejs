@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Details</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="logout-button-container">
+        <form action="/logout" method="POST">
+            <button type="submit" class="logout-button">Logout</button>
+        </form>
+    </div>
+    <h1>Book Information</h1>
+
+    <div id="books-list">
+        <% books.forEach(book => { %>
+            <div class="book-info">
+                <div class="book-details">
+                    <h2><%= book.title %></h2>
+                    <% if (book.image) { %>
+                        <img src="<%= book.image %>" alt="<%= book.title %>" style="max-width: 200px;">
+                    <% } else { %>
+                        <p>No image available for this book.</p>
+                    <% } %>
+    
+                    <p><strong>Author:</strong> <%= book.author || 'Unknown' %></p>
+                    <p><strong>Description:</strong> Need to add Description</p>
+                </div>
+    
+                <!-- Actions -->
+                <div class="book-actions">
+                    <!-- Favorite Button -->
+                    <% if (currentUser) { %>
+                        <form action="/favorite" method="POST" style="margin-bottom: 10px;">
+                            <input type="hidden" name="book_id" value="<%= book.id %>">
+                            <button type="submit">Favorite</button>
+                        </form>
+                    <% } else { %>
+                        <p>Log in to add to favorites.</p>
+                    <% } %>
+    
+                    <!-- Reviews Button -->
+                    <a href="/books/<%= book.id %>/reviews">
+                        <button type="button" class="reviews-button">View Reviews</button>
+                    </a>
+    
+                    <!-- Display Users Who Favorited -->
+                    <% if (book.favorited_by && book.favorited_by.length > 0) { %>
+                        <p>Favorited by users: <%= book.favorited_by.join(', ') %></p>
+                    <% } else { %>
+                        <p>No users have favorited this book yet.</p>
+                    <% } %>
+                </div>
+            </div>
+            <hr>
+        <% }); %>
+    </div>    
+</body>
+</html>

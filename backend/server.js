@@ -32,7 +32,10 @@ db.connect().then(()=>console.log("Connected")).catch((err)=>console.log(err));
 //this allows the use of the body-parser middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, '../frontend/src/public')));
+app.use(express.static(path.join(__dirname, '../frontend/build'))); // React build folder
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+});
 
 // function to check if a username already exists
 async function userNameExists(username) {
@@ -63,49 +66,37 @@ app.post("/logout", (req, res) => {
 // sign in functionality
 app.post("/signin", async (req, res) => {
     try {
-        const result = await db.query("SELECT id FROM users WHERE username = $1 AND password = $2", [req.body["username"], req.body["password"]]);
+        const { username, password } = req.body;
+        const result = await db.query(
+            "SELECT id FROM users WHERE username = $1 AND password = $2",
+            [username, password]
+        );
 
         if (result.rowCount > 0) {
-            // Set currentUser for the single-user case
-            currentUser = {
-                id: result.rows[0].id,
-                name: result.rows[0].username,
-            };
-
-            res.redirect("/books");
+            res.status(200).json({ message: "Signin successful", user: result.rows[0] });
         } else {
-            res.render('../../frontend/src/views/signin.ejs', { error: 'Invalid username or password. Please try again.' });
+            res.status(401).json({ error: "Invalid username or password" });
         }
     } catch (error) {
-        console.error("Error during sign-in:", error);
-        res.status(500).send("Error during sign-in");
+        console.error("Error during signin:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
+
 
 // Route to handle Favorites for Books
 app.post('/favorite', async (req, res) => {
     if (!currentUser) {
         return res.status(403).send("You must be logged in to favorite a book.");
     }
-
     const { book_id } = req.body;
-
-    console.log("bookID: " + book_id);
-    console.log("currentUser.id: " + currentUser.id)
-
     try {
-        // Add the current user's ID to the favorited_by array for the specified book
-        /* EXAMPLE:
-        UPDATE books
-        SET favorited_by = array_append(favorited_by, 5)
-        WHERE id = 1 AND NOT (5 = ANY(favorited_by));
-        */
         await db.query(
             "UPDATE books SET favorited_by = array_append(favorited_by, $1) WHERE id = $2 AND NOT ($1 = ANY(favorited_by))",
             [currentUser.id, book_id]
         );
 
-        res.redirect('/books');
+        res.status(200).json({ message: "Book favorited successfully" });
     } catch (error) {
         console.error("Error adding favorite:", error);
         res.status(500).send("Error adding favorite");
@@ -119,13 +110,13 @@ app.post("/signup", async (req, res) => {
         // set the error value to true
         var error = 1;
         // rerender the sign up page with an error message
-        res.render("../../frontend/src/views/signup.ejs",{error: error})
+        res.status(201).json({ message: 'Signup successful' });
     }
     // if the user doesnt already exist, submit them into the database
     else{
         await db.query("INSERT INTO users (username, password) VALUES ($1, $2)", [req.body["username"], req.body["password"]]);
         // render the sign in page now so the user can sign in
-        res.render("../../frontend/src/views/signin.ejs");
+        res.status(201).json({ message: 'Signup successful' });
     }
 });
 
@@ -133,9 +124,9 @@ app.post("/signup", async (req, res) => {
 app.get('/', (req, res) => {
     if(currentUser === null)
     {
-        res.render('../../frontend/src/views/signin.ejs');
+        res.status(200).json({ message: 'Signin successful', user: null });
     }
-    res.render('../../frontend/src/views/signin.ejs');
+    res.status(200).json({ message: 'Signin successful', user: null });
 });
 
 // this was currently set up for testing but shows how to call the database for the books table
@@ -172,7 +163,7 @@ app.get('/books', async (req, res) => {
         );
 
         // Render the books page with all book data and pass currentUser
-        res.render('../../frontend/src/views/books.ejs', { books, currentUser });
+        res.status(200).json(books);
 
     } catch (error) {
         console.error("Error fetching data from Google Books API:", error);
@@ -194,7 +185,7 @@ app.get('/books/:bookId/reviews', async (req, res) => {
         const reviews = reviewsQuery.rows;
 
         // render the reviews page
-        res.render('../../frontend/src/views/reviews.ejs', { title: title, reviews: reviews, book_id: bookId });
+        res.status(200).json({ title, reviews, book_id: bookId });
     } catch (error) {
         console.error("Error fetching reviews:", error);
         res.status(500).send("Error fetching reviews");
