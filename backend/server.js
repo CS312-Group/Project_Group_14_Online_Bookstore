@@ -248,6 +248,43 @@ app.get('/books-by-category/:category', async (req, res) => {
     }
   });
 
+  app.get('/books-by-name/:name', async (req, res) => {
+    try {
+        const { name } = req.params;
+        const queryResult = await db.query("SELECT * FROM books WHERE title = $1", [name]);
+        const books = await Promise.all(
+            queryResult.rows.map(async (book) => {
+                const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${book.api_id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
+                
+                // If there are users who favorited this book, fetch their usernames
+                const favoritedByIds = book.favorited_by || [];
+                let favoritedByUsernames = [];
+
+                if (favoritedByIds.length > 0) {
+                    const userQuery = await db.query(
+                        "SELECT username FROM users WHERE id = ANY($1)",
+                        [favoritedByIds]
+                    );
+                    favoritedByUsernames = userQuery.rows.map(row => row.username);
+                }
+
+                return {
+                    id: book.id, 
+                    title: response.data.volumeInfo.title,
+                    image: response.data.volumeInfo.imageLinks?.thumbnail || null,
+                    favorited_by: favoritedByUsernames
+                };
+            })
+        );
+
+        res.render('../../frontend/src/views/books.ejs', { books, currentUser });
+        
+    } catch (error) {
+        console.error("Error fetching data from Google Books API:", error);
+        res.status(500).send("Error fetching data");
+    }
+  });
+
 
 
 //this is what the udemy videos used to show the server was running so I added it
