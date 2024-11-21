@@ -149,11 +149,24 @@ app.get('/books', async (req, res) => {
         const books = await Promise.all(
             queryResult.rows.map(async (book) => {
                 const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${book.api_id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
+                
+                // If there are users who favorited this book, fetch their usernames
+                const favoritedByIds = book.favorited_by || [];
+                let favoritedByUsernames = [];
+
+                if (favoritedByIds.length > 0) {
+                    const userQuery = await db.query(
+                        "SELECT username FROM users WHERE id = ANY($1)",
+                        [favoritedByIds]
+                    );
+                    favoritedByUsernames = userQuery.rows.map(row => row.username);
+                }
+
                 return {
                     id: book.id, 
                     title: response.data.volumeInfo.title,
                     image: response.data.volumeInfo.imageLinks?.thumbnail || null,
-                    favorited_by: book.favorited_by || []
+                    favorited_by: favoritedByUsernames
                 };
             })
         );
