@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/reviews.css">
     <title>Book Reviews</title>
 </head>
 <body>
+    <!-- Back to Books Button -->
+    <div id="back-button-container">
+        <a href="/books" class="back-button">← Back to Books</a>
+    </div>
+
     <h1>Reviews for "<%= title %>"</h1>
     <div id="reviews-section">
         <% if (reviews && reviews.length > 0) { %>
