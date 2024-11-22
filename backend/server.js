@@ -308,25 +308,21 @@ app.get('/books-by-category/:category', async (req, res) => {
   app.get('/books/:bookId/moreInfo', async (req, res) => {
     // get the book id for the reviews
     const bookId = parseInt(req.params.bookId);
-    console.log(bookId);
+
+    //get the api_id for the selected book
+    const queryResult = await db.query("SELECT api_id FROM books WHERE id = $1", [bookId]);
 
     try {
-        //const bookInfo = await axios.get(`https://www.googleapis.com/books/v1/volumes/${bookId}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
+        // get the info from the api call for the book
+        const bookInfo = await axios.get(`https://www.googleapis.com/books/v1/volumes/${queryResult.rows[0].api_id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
 
-        //const title = bookInfo.data.volumeInfo.title
-        //const author = bookInfo.data.volumeInfo.authors[0];
-        //const date = bookInfo.data.volumeInfo.publishedDate;
-        //const description = bookInfo.data.volumeInfo.description;
+        // set the values with the api return values
+        const title = bookInfo.data.volumeInfo.title
+        const author = bookInfo.data.volumeInfo.authors[0];
+        const date = bookInfo.data.volumeInfo.publishedDate;
+        const description = bookInfo.data.volumeInfo.description;
 
-        const title = "Default Title";
-        const author = "Default Author";
-        const date = "Default Publication Date";
-        const description = "Default Description";
-
-        console.log("$1 $2 $3 $4", [title, author, date, description]);
-
-
-        // render the reviews page
+        // render the moreInfo page
         res.status(200).json({ title, author, date, description});
     } catch (error) {
         console.error("Error fetching more Info:", error);
