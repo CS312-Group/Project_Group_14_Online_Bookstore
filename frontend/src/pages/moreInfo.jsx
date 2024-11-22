@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const MoreInfo = () => {
+    const location = useLocation();
     const { bookId } = useParams();
     const [bookInfo, setBookInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+
+    const currentUser = location.state?.user; // Retrieve user from location state
+
+    console.log("Current User:", currentUser); // Debug log
 
     useEffect(() => {
         const fetchBookInfo = async () => {
@@ -49,7 +54,7 @@ const MoreInfo = () => {
 
             <div>
             <button
-                onClick={() => navigate(`/books`)}
+                onClick={() => navigate(`/books`, { state: { user: currentUser } })}
                 style={{ marginBottom: "10px" }}
             >
                 Back to books...
