@@ -1,11 +1,10 @@
-import bodyParser from "body-parser";
 import express from "express";
 import pg from "pg";
 import axios from "axios";
 import dotenv from "dotenv";
-import path from 'path';
-import { fileURLToPath } from 'url';
-
+import path from "path";
+import { fileURLToPath } from "url";
+import cors from "cors";
 
 //declaration of variables that are used in the file
 const app = express();
@@ -13,6 +12,14 @@ const port = 3000;
 dotenv.config({ path: '../.env' });
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+
+ // React build folder
+app.use(express.static(path.join(__dirname, '../frontend/build')));
 
 // current user lets us know if someone is logged in and who
 let currentUser = null;
@@ -29,13 +36,6 @@ const db = new pg.Client({
 // connect to the database and display success
 db.connect().then(()=>console.log("Connected")).catch((err)=>console.log(err));
 
-//this allows the use of the body-parser middleware
-app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use(express.static(path.join(__dirname, '../frontend/build'))); // React build folder
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
-});
 
 // function to check if a username already exists
 async function userNameExists(username) {
@@ -44,39 +44,23 @@ async function userNameExists(username) {
     return parseInt(queryResult.rows[0].count) > 0;
 }
 
-// Renders the signup page
-app.get("/signup", (req, res) => {
-    res.render("../../frontend/src/views/signup.ejs", { error: null });
-});
-
-// Renders the signin page
-app.get("/signin", (req, res) => {
-    res.render("../../frontend/src/views/signin.ejs", { error: null });
-});
-
-// this will log the user out
-app.post("/logout", (req, res) => {
-    // sets the current user to null to effectively log them out
-    currentUser = null;
-
-    // Uncomment when this is created 
-    res.render("../../frontend/src/views/signin.ejs", { error: null });
-});
-
-// sign in functionality
+// Sign In
 app.post("/signin", async (req, res) => {
     try {
         const { username, password } = req.body;
+
+        // Query the database for the user
         const result = await db.query(
-            "SELECT id FROM users WHERE username = $1 AND password = $2",
+            "SELECT id, username FROM users WHERE username = $1 AND password = $2",
             [username, password]
         );
 
-        if (result.rowCount > 0) {
-            res.status(200).json({ message: "Signin successful", user: result.rows[0] });
-        } else {
-            res.status(401).json({ error: "Invalid username or password" });
+        if (result.rowCount === 0) {
+            return res.status(401).json({ error: "Invalid username or password" });
         }
+
+        const user = result.rows[0];
+        res.status(200).json({ message: "Signin successful", user });
     } catch (error) {
         console.error("Error during signin:", error);
         res.status(500).json({ error: "Internal server error" });
@@ -84,50 +68,23 @@ app.post("/signin", async (req, res) => {
 });
 
 
-// Route to handle Favorites for Books
-app.post('/favorite', async (req, res) => {
-    if (!currentUser) {
-        return res.status(403).send("You must be logged in to favorite a book.");
-    }
-    const { book_id } = req.body;
-    try {
-        await db.query(
-            "UPDATE books SET favorited_by = array_append(favorited_by, $1) WHERE id = $2 AND NOT ($1 = ANY(favorited_by))",
-            [currentUser.id, book_id]
-        );
-
-        res.status(200).json({ message: "Book favorited successfully" });
-    } catch (error) {
-        console.error("Error adding favorite:", error);
-        res.status(500).send("Error adding favorite");
-    }
-});
-
-// sign up functionality
+// Sign Up
 app.post("/signup", async (req, res) => {
-    // check if the username already exists
-    if(await userNameExists(req.body["username"])){
-        // set the error value to true
-        var error = 1;
-        // rerender the sign up page with an error message
-        res.status(201).json({ message: 'Signup successful' });
-    }
-    // if the user doesnt already exist, submit them into the database
-    else{
-        await db.query("INSERT INTO users (username, password) VALUES ($1, $2)", [req.body["username"], req.body["password"]]);
-        // render the sign in page now so the user can sign in
-        res.status(201).json({ message: 'Signup successful' });
+    const { username, password } = req.body;
+
+    try {
+        if (await userNameExists(username)) {
+            return res.status(400).json({ error: "Username already exists" });
+        }
+
+        await db.query("INSERT INTO users (username, password) VALUES ($1, $2)", [username, password]);
+        res.status(201).json({ message: "Signup successful" });
+    } catch (error) {
+        console.error("Error during signup:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 
-// Define a route to render an EJS view with a message
-app.get('/', (req, res) => {
-    if(currentUser === null)
-    {
-        res.status(200).json({ message: 'Signin successful', user: null });
-    }
-    res.status(200).json({ message: 'Signin successful', user: null });
-});
 
 // this was currently set up for testing but shows how to call the database for the books table
 // as well as shows how to use the api call to get the information about the books
@@ -171,24 +128,22 @@ app.get('/books', async (req, res) => {
     }
 });
 
-// get the reviews under a given book
-app.get('/books/:bookId/reviews', async (req, res) => {
-    // get the book id for the reviews
-    const bookId = parseInt(req.params.bookId);
-
+// Route to handle Favorites for Books
+app.post('/favorite', async (req, res) => {
+    if (!currentUser) {
+        return res.status(403).send("You must be logged in to favorite a book.");
+    }
+    const { book_id } = req.body;
     try {
-        // fetch the book title and reviews for the book id
-        const bookQuery = await db.query("SELECT title FROM books WHERE id = $1", [bookId]);
-        const reviewsQuery = await db.query("SELECT * FROM reviews WHERE book_id = $1", [bookId]);
+        await db.query(
+            "UPDATE books SET favorited_by = array_append(favorited_by, $1) WHERE id = $2 AND NOT ($1 = ANY(favorited_by))",
+            [currentUser.id, book_id]
+        );
 
-        const title = bookQuery.rows[0]?.title || "Unknown Book";
-        const reviews = reviewsQuery.rows;
-
-        // render the reviews page
-        res.status(200).json({ title, reviews, book_id: bookId });
+        res.status(200).json({ message: "Book favorited successfully" });
     } catch (error) {
-        console.error("Error fetching reviews:", error);
-        res.status(500).send("Error fetching reviews");
+        console.error("Error adding favorite:", error);
+        res.status(500).send("Error adding favorite");
     }
 });
 
@@ -211,10 +166,60 @@ app.post('/books/:bookId/reviews', async (req, res) => {
         const reviews = result.rows;
 
         // render the review page
-        res.render('../../frontend/src/views/reviews.ejs', { title: title, reviews: reviews, book_id: bookId });
+        res.status(200).json({ title: title, reviews: reviews, book_id: bookId });
     } catch (error) {
         console.error("Error adding review:", error);
         res.status(500).send("Error adding review");
+    }
+});
+
+// Renders the signup page
+app.get("/signup", (req, res) => {
+    res.status(200).json({ error: null });
+});
+
+// Renders the signin page
+app.get("/signin", (req, res) => {
+    res.status(200).json({ error: null });
+});
+
+// this will log the user out
+app.post("/logout", (req, res) => {
+    // sets the current user to null to effectively log them out
+    currentUser = null;
+
+    // Uncomment when this is created 
+    res.status(200).json({ error: null });
+});
+
+// Define a route to render an EJS view with a message
+app.get('/', (req, res) => {
+    if(currentUser === null)
+    {
+        res.status(200).json({ message: 'Signin successful', user: null });
+    }
+    res.status(200).json({ message: 'Signin successful', user: null });
+});
+
+
+// get the reviews under a given book
+app.get('/books/:bookId/reviews', async (req, res) => {
+    // get the book id for the reviews
+    const bookId = parseInt(req.params.bookId);
+
+    try {
+        // fetch the book title and reviews for the book id
+        const bookQuery = await db.query("SELECT title FROM books WHERE id = $1", [bookId]);
+        const reviewsQuery = await db.query("SELECT * FROM reviews WHERE book_id = $1", [bookId]);
+
+        const title = bookQuery.rows[0]?.title || "Unknown Book";
+        const reviews = reviewsQuery.rows;
+
+        // render the reviews page
+        res.status(200).json({ title, reviews, book_id: bookId });
+    } catch (error) {
+        console.error("Error fetching reviews:", error);
+        res.status(500).send("Error fetching reviews");
     }
 });
 
@@ -277,7 +282,7 @@ app.get('/books-by-category/:category', async (req, res) => {
             })
         );
 
-        res.render('../../frontend/src/views/books.ejs', { books, currentUser });
+        res.status(200).json(books);
         
     } catch (error) {
         console.error("Error fetching data from Google Books API:", error);

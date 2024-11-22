@@ -1,68 +1,136 @@
-import React from 'react';
-import './styles.css';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
+const Books = ({ currentUser }) => {
+    const [books, setBooks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
+    useEffect(() => {
+        const fetchBooks = async () => {
+            try {
+                const response = await fetch("http://localhost:3000/books");
+                if (!response.ok) {
+                    throw new Error("Failed to fetch books");
+                }
+                const data = await response.json();
+                setBooks(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-const Books = ({ books, currentUser }) => {
+        fetchBooks();
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            const response = await fetch("http://localhost:3000/logout", {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                navigate("/signin");
+            }
+        } catch (err) {
+            console.error("Logout failed:", err);
+        }
+    };
+
+    const handleFavorite = async (bookId) => {
+        try {
+            const response = await fetch("http://localhost:3000/favorite", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ book_id: bookId }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to favorite the book");
+            }
+
+            // Refresh books list to update favorited status
+            const updatedBooks = books.map((book) =>
+                book.id === bookId
+                    ? { ...book, favorited_by: [...(book.favorited_by || []), currentUser.username] }
+                    : book
+            );
+            setBooks(updatedBooks);
+        } catch (err) {
+            console.error("Error adding favorite:", err);
+        }
+    };
+
+    if (loading) {
+        return <div>Loading books...</div>;
+    }
+
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
+
     return (
         <div>
-            {/* Logout Button */}
             <div className="logout-button-container">
-                <form action="/logout" method="POST">
-                    <button type="submit" className="logout-button">Logout</button>
-                </form>
+                <button onClick={handleLogout} className="logout-button">
+                    Logout
+                </button>
             </div>
             <h1>Book Information</h1>
-
             <div id="books-list">
                 {books.map((book) => (
-                    <div key={book.id} className="book-info">
+                    <div className="book-info" key={book.id}>
                         <div className="book-details">
                             <h2>{book.title}</h2>
                             {book.image ? (
                                 <img
                                     src={book.image}
                                     alt={book.title}
-                                    style={{ maxWidth: '200px' }}
+                                    style={{ maxWidth: "200px" }}
                                 />
                             ) : (
                                 <p>No image available for this book.</p>
                             )}
-
                             <p>
-                                <strong>Author:</strong> {book.author || 'Unknown'}
+                                <strong>Author:</strong> {book.author || "Unknown"}
                             </p>
                             <p>
                                 <strong>Description:</strong> Need to add Description
                             </p>
                         </div>
 
-                        {/* Actions */}
                         <div className="book-actions">
-                            {/* Favorite Button */}
                             {currentUser ? (
-                                <form action="/favorite" method="POST" style={{ marginBottom: '10px' }}>
-                                    <input type="hidden" name="book_id" value={book.id} />
-                                    <button type="submit">Favorite</button>
-                                </form>
+                                <button
+                                    onClick={() => handleFavorite(book.id)}
+                                    style={{ marginBottom: "10px" }}
+                                >
+                                    Favorite
+                                </button>
                             ) : (
                                 <p>Log in to add to favorites.</p>
                             )}
 
-                            {/* Reviews Button */}
-                            <a href={`/books/${book.id}/reviews`}>
-                                <button type="button" className="reviews-button">
-                                    View Reviews
-                                </button>
-                            </a>
+                            <button
+                                onClick={() => navigate(`/books/${book.id}/reviews`)}
+                                className="reviews-button"
+                            >
+                                View Reviews
+                            </button>
 
-                            {/* Display Users Who Favorited */}
                             {book.favorited_by && book.favorited_by.length > 0 ? (
-                                <p>Favorited by users: {book.favorited_by.join(', ')}</p>
+                                <p>
+                                    Favorited by users: {book.favorited_by.join(", ")}
+                                </p>
                             ) : (
                                 <p>No users have favorited this book yet.</p>
                             )}
                         </div>
+                        <hr />
                     </div>
                 ))}
             </div>
