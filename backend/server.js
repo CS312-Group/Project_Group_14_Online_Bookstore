@@ -103,6 +103,16 @@ app.get('/books', async (req, res) => {
             queryResult.rows.map(async (book) => {
                 const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${book.api_id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
                 
+                // get the average of the scores from the reviews
+                const avgScoreResult = await db.query(
+                    "SELECT AVG(score) AS average_score FROM reviews WHERE book_id = $1",
+                    [book.id]
+                );
+
+                const averageScore = avgScoreResult.rows[0]?.average_score || null;
+
+                console.log(avgScoreResult)
+
                 // If there are users who favorited this book, fetch their usernames
                 const favoritedByIds = book.favorited_by || [];
                 let favoritedByUsernames = [];
@@ -119,7 +129,8 @@ app.get('/books', async (req, res) => {
                     id: book.id, 
                     title: response.data.volumeInfo.title,
                     image: response.data.volumeInfo.imageLinks?.thumbnail || null,
-                    favorited_by: favoritedByUsernames
+                    favorited_by: favoritedByUsernames,
+                    average_score: averageScore
                 };
             })
         );
@@ -154,13 +165,13 @@ app.post('/favorite', async (req, res) => {
 
 app.post('/books/:bookId/reviews', async (req, res) => {
     const bookId = parseInt(req.params.bookId);
-    const { author, title, review_content } = req.body;
+    const { author, title, review_content, score } = req.body;
 
     try {
         // insert a new review
         await db.query(
-            "INSERT INTO reviews (author, title, review_content, book_id) VALUES ($1, $2, $3, $4)",
-            [author, title, review_content, bookId]
+            "INSERT INTO reviews (author, title, review_content, book_id, score) VALUES ($1, $2, $3, $4, $5)",
+            [author, title, review_content, bookId, score]
         );
 
         // get all of the reviews for that book
@@ -171,7 +182,7 @@ app.post('/books/:bookId/reviews', async (req, res) => {
         const reviews = result.rows;
 
         // render the review page
-        res.status(200).json({ title: title, reviews: reviews, book_id: bookId });
+        res.status(200).json({ title: title, reviews: reviews, book_id: bookId, score: score });
     } catch (error) {
         console.error("Error adding review:", error);
         res.status(500).send("Error adding review");

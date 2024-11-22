@@ -10,6 +10,7 @@ const Reviews = () => {
         author: "",
         title: "",
         review_content: "",
+        score: 1,
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -61,7 +62,7 @@ const Reviews = () => {
             }
             const data = await response.json();
             setReviews(data.reviews);
-            setFormData({ author: "", title: "", review_content: "" });
+            setFormData({ author: "", title: "", review_content: "", score: 1 });
         } catch (err) {
             console.error("Error submitting review:", err);
         }
@@ -100,6 +101,8 @@ const Reviews = () => {
                                     <strong>Title:</strong> {review.title}
                                     <br />
                                     <strong>Review:</strong> {review.review_content}
+                                    <br />
+                                    <strong>Score:</strong> {review.score} / 5
                                     <hr />
                                 </li>
                             ))}
@@ -142,6 +145,19 @@ const Reviews = () => {
                         onChange={handleChange}
                         required
                     ></textarea>
+                    <br />
+
+                    <label htmlFor="score">Score (1-5):</label>
+                    <input
+                        type="number"
+                        id="score"
+                        name="score"
+                        value={formData.score}
+                        onChange={handleChange}
+                        min="1"
+                        max="5"
+                        required
+                    />
                     <br />
 
                     <button type="submit">Submit Review</button>

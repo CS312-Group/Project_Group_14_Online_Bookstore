@@ -129,6 +129,12 @@ const Books = ({ currentUser }) => {
                                 View Reviews
                             </button>
 
+                            {book.average_score !== null ? (
+                                <p>Average Review Score: {Math.round(book.average_score)}/5</p>
+                            ) : (
+                                <p>No reviews yet.</p>
+                            )}
+
                             {book.favorited_by && book.favorited_by.length > 0 ? (
                                 <p>
                                     Favorited by users: {book.favorited_by.join(", ")}
