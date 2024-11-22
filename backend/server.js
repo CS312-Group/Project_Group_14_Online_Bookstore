@@ -16,7 +16,10 @@ const __dirname = path.dirname(__filename);
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3001', // Replace with your React app's URL
+    credentials: true, // Allow cookies to be sent
+  }));
 
  // React build folder
 app.use(express.static(path.join(__dirname, '../frontend/build')));
@@ -59,8 +62,10 @@ app.post("/signin", async (req, res) => {
             return res.status(401).json({ error: "Invalid username or password" });
         }
 
+        currentUser = username;
+
         const user = result.rows[0];
-        res.status(200).json({ message: "Signin successful", user });
+        res.status(200).json({ message: "Signin successful", username });
     } catch (error) {
         console.error("Error during signin:", error);
         res.status(500).json({ error: "Internal server error" });
