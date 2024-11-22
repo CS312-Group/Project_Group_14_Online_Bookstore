@@ -178,7 +178,7 @@ const Books = () => {
                                 )}
 
                                 <button
-                                    onClick={() => navigate(`/books/${book.id}/moreInfo`)}
+                                    onClick={() => navigate(`/books/${book.id}/moreInfo`, { state: { user: currentUser } })}
                                     style={{ marginBottom: "10px" }}
                                 >
                                     More Info
