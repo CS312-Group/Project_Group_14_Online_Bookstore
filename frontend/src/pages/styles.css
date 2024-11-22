@@ -90,7 +90,7 @@ h1 {
 
 /* Book Details Section */
 .book-details {
-    flex: 1;
+    width: 70%;
     padding-right: 20px;
 }
 
@@ -115,6 +115,7 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    padding: 20px;
 }
 
 /* General Button Styles */
@@ -316,4 +317,14 @@ hr {
     border: 1px solid #ddd;
     border-radius: 5px;
     width: 150px; /* You can adjust this width as needed */
+}
+
+.more-info-container {
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Make the container width 90% of the page width */
+    box-sizing: border-box; /* Include padding in the element's total width */
 }
