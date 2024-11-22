@@ -13,6 +13,7 @@ const Books = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [search, setSearch] = useState("");
+    const [genre, setGenre] = useState("");
 
     useEffect(() => {
         const fetchBooks = async () => {
@@ -99,6 +100,13 @@ const Books = () => {
         setSearch(e.target.value);
     };
 
+    const handleGenreChange = (event) => {
+        const selectedGenre = event.target.value;
+        // Perform any additional logic here
+        // For example, set the selected genre to state
+        setGenre(selectedGenre);
+    };
+
     if (loading) {
         return <div>Loading books...</div>;
     }
@@ -124,6 +132,20 @@ const Books = () => {
                     onChange={handleSearchChange}
                     placeholder="Search for books by title"
                 />
+
+                <div id="genre_select">
+                    <select value={genre} onChange={handleGenreChange}>
+                        <option value="">Select Genre</option>
+                        <option value="Cooking">Cooking</option>
+                        <option value="Fiction">Fiction</option>
+                        <option value="Drama">Drama</option>
+                        <option value="Nature">Nature</option>
+                        <option value="Religion">Religion</option>
+                        <option value="History">History</option>
+                        <option value="Science">Science</option>
+                        <option value="Business & Economics">Business & Economics</option>
+                    </select>
+                </div>
             </div>
 
             <div id="books-list">
@@ -141,12 +163,6 @@ const Books = () => {
                                 ) : (
                                     <p>No image available for this book.</p>
                                 )}
-                                <p>
-                                    <strong>Author:</strong> {book.author || "Unknown"}
-                                </p>
-                                <p>
-                                    <strong>Description:</strong> Need to add Description
-                                </p>
                             </div>
 
                             <div className="book-actions">

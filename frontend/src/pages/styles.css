@@ -310,3 +310,10 @@ hr {
     background-color: #0056b3;
 }
 
+
+#genre_select select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 150px; /* You can adjust this width as needed */
+}
