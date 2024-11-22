@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 const Reviews = () => {
-    const { bookId } = useParams(); 
+    const location = useLocation();
     const navigate = useNavigate();
+    const currentUser = location.state?.user; // Retrieve user from location state
+
+    console.log("Current User:", currentUser); // Debug log
+    const { bookId } = useParams(); 
     const [bookTitle, setBookTitle] = useState("");
     const [reviews, setReviews] = useState([]);
     const [formData, setFormData] = useState({
@@ -82,7 +86,7 @@ const Reviews = () => {
             <div id="back-button-container">
                 <button
                     className="back-button"
-                    onClick={() => navigate("/books")}
+                    onClick={() => navigate("/books",  { state: { user: currentUser } })}
                 >
                     ← Back to Books
                 </button>

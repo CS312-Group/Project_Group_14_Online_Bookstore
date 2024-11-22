@@ -62,10 +62,8 @@ app.post("/signin", async (req, res) => {
             return res.status(401).json({ error: "Invalid username or password" });
         }
 
-        currentUser = username;
-
         const user = result.rows[0];
-        res.status(200).json({ message: "Signin successful", username });
+        res.status(200).json({ message: "Signin successful", user });
     } catch (error) {
         console.error("Error during signin:", error);
         res.status(500).json({ error: "Internal server error" });
