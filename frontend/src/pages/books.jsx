@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+const Books = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const currentUser = location.state?.user; // Retrieve user from location state
 
-const Books = ({ currentUser }) => {
+    console.log("Current User:", currentUser); // Debug log
+    
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const navigate = useNavigate();
+    
 
     useEffect(() => {
         const fetchBooks = async () => {
@@ -46,13 +51,14 @@ const Books = ({ currentUser }) => {
             const response = await fetch("http://localhost:3000/favorite", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ book_id: bookId }),
+                credentials: "include", // Include cookies for session authentication
+                body: JSON.stringify({ book_id: bookId }), // Pass the book ID
             });
-
+    
             if (!response.ok) {
                 throw new Error("Failed to favorite the book");
             }
-
+    
             // Refresh books list to update favorited status
             const updatedBooks = books.map((book) =>
                 book.id === bookId
@@ -63,7 +69,7 @@ const Books = ({ currentUser }) => {
         } catch (err) {
             console.error("Error adding favorite:", err);
         }
-    };
+    };    
 
     if (loading) {
         return <div>Loading books...</div>;
@@ -123,7 +129,7 @@ const Books = ({ currentUser }) => {
                             </button>
 
                             <button
-                                onClick={() => navigate(`/books/${book.id}/reviews`)}
+                                onClick={() => navigate(`/books/${book.id}/reviews`, { state: { user: currentUser } })}
                                 className="reviews-button"
                             >
                                 View Reviews

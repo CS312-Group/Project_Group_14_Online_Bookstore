@@ -35,7 +35,7 @@ const SignIn = () => {
                 console.log('User:', data.user);
                 // Redirect to the books page
                 setTimeout(() => {
-                    navigate('/books'); 
+                    navigate('/books', { state: { user: data.user } }); 
                 }, 1000); 
             } else {
                 const errorData = await response.json();
