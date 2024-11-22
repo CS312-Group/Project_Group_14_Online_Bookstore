@@ -42,7 +42,10 @@ const MoreInfo = () => {
             <p><strong>Author:</strong> {bookInfo.author}</p>
             <p><strong>Published on:</strong> {bookInfo.date}</p>
             <p><strong>Description:</strong></p>
-            <p>{bookInfo.description}</p>
+            <div 
+                className="book-description" 
+                dangerouslySetInnerHTML={{ __html: bookInfo.description }} 
+            />
 
             <div>
             <button
