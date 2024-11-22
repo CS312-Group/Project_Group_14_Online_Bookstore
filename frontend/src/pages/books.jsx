@@ -48,6 +48,38 @@ const Books = () => {
         }
     }, [search, books]);
 
+    const handleFavorite = async (bookId, userId) => {
+        try {
+            const response = await fetch("http://localhost:3000/favorite", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ book_id: bookId, user_id: userId }),
+            });
+    
+            if (!response.ok) {
+                throw new Error("Failed to favorite the book.");
+            }
+    
+            const updatedBooks = books.map((book) => {
+                if (book.id === bookId) {
+                    return {
+                        ...book,
+                        favorited_by: [...(book.favorited_by || []), currentUser.username],
+                    };
+                }
+                return book;
+            });
+    
+            setBooks(updatedBooks);
+            setFilteredBooks(updatedBooks); // Ensure filtered view is also updated
+        } catch (error) {
+            console.error("Error favoriting the book:", error);
+        }
+    };
+    
+
     const handleLogout = async () => {
         try {
             const response = await fetch("http://localhost:3000/logout", {
@@ -60,31 +92,6 @@ const Books = () => {
             }
         } catch (err) {
             console.error("Logout failed:", err);
-        }
-    };
-
-    const handleFavorite = async (bookId) => {
-        try {
-            const response = await fetch("http://localhost:3000/favorite", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include", // Include cookies for session authentication
-                body: JSON.stringify({ book_id: bookId }), // Pass the book ID
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to favorite the book");
-            }
-
-            // Refresh books list to update favorited status
-            const updatedBooks = books.map((book) =>
-                book.id === bookId
-                    ? { ...book, favorited_by: [...(book.favorited_by || []), currentUser.username] }
-                    : book
-            );
-            setBooks(updatedBooks);
-        } catch (err) {
-            console.error("Error adding favorite:", err);
         }
     };
 
@@ -145,11 +152,11 @@ const Books = () => {
                             <div className="book-actions">
                                 {currentUser ? (
                                     <button
-                                        onClick={() => handleFavorite(book.id)}
-                                        style={{ marginBottom: "10px" }}
-                                    >
-                                        Favorite
-                                    </button>
+                                    onClick={() => handleFavorite(book.id, currentUser.id)}
+                                    style={{ marginBottom: "10px" }}
+                                >
+                                    Favorite
+                                </button>
                                 ) : (
                                     <p>Log in to add to favorites.</p>
                                 )}

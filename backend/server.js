@@ -144,14 +144,12 @@ app.get('/books', async (req, res) => {
 
 // Route to handle Favorites for Books
 app.post('/favorite', async (req, res) => {
-    if (!currentUser) {
-        return res.status(403).send("You must be logged in to favorite a book.");
-    }
-    const { book_id } = req.body;
+    const { book_id, user_id } = req.body;
+
     try {
         await db.query(
             "UPDATE books SET favorited_by = array_append(favorited_by, $1) WHERE id = $2 AND NOT ($1 = ANY(favorited_by))",
-            [currentUser.id, book_id]
+            [user_id, book_id]
         );
 
         res.status(200).json({ message: "Book favorited successfully" });
