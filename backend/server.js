@@ -291,6 +291,36 @@ app.get('/books-by-category/:category', async (req, res) => {
   });
 
 
+  app.get('/books/:bookId/moreInfo', async (req, res) => {
+    // get the book id for the reviews
+    const bookId = parseInt(req.params.bookId);
+    console.log(bookId);
+
+    try {
+        //const bookInfo = await axios.get(`https://www.googleapis.com/books/v1/volumes/${bookId}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
+
+        //const title = bookInfo.data.volumeInfo.title
+        //const author = bookInfo.data.volumeInfo.authors[0];
+        //const date = bookInfo.data.volumeInfo.publishedDate;
+        //const description = bookInfo.data.volumeInfo.description;
+
+        const title = "Default Title";
+        const author = "Default Author";
+        const date = "Default Publication Date";
+        const description = "Default Description";
+
+        console.log("$1 $2 $3 $4", [title, author, date, description]);
+
+
+        // render the reviews page
+        res.status(200).json({ title, author, date, description});
+    } catch (error) {
+        console.error("Error fetching more Info:", error);
+        res.status(500).send("Error fetching More Info");
+    }
+});
+
+
 
 //this is what the udemy videos used to show the server was running so I added it
 app.listen(port,() => {
