@@ -16,7 +16,8 @@ CREATE TABLE reviews (
     author VARCHAR(255),
     title VARCHAR(255),
     review_content TEXT,
-    book_id INTEGER REFERENCES books(id)
+    book_id INTEGER REFERENCES books(id),
+    score INTEGER
 );
 
 -- Create users table
