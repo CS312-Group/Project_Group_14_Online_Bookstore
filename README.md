@@ -79,8 +79,8 @@ VALUES
 
 # Add the data to the table reviews
 ```
-INSERT INTO reviews (id, author, title, review_content, book_id)
+INSERT INTO reviews (id, author, title, review_content, book_id, score)
 VALUES
-(1, 'MichaelV', 'Loved it!', 'This is personally one of my favorite books! Loved every word!', 1),
-(2, 'MeaghanF', 'It was okay', 'Personally, I did not find this book to be super interesting.', 1);
+(1, 'MichaelV', 'Loved it!', 'This is personally one of my favorite books! Loved every word!', 1, 4),
+(2, 'MeaghanF', 'It was okay', 'Personally, I did not find this book to be super interesting.', 1, 1);
 ```
