@@ -118,14 +118,13 @@ const Books = () => {
     };
 
     // function to set the search state as the user is typing
-    const handleSearchChange = (e) => {
-        setSearch(e.target.value);
+    const handleSearchChange = (event) => {
+        setSearch(event.target.value);
     };
 
     // function to handle the genre changes
     const handleGenreChange = (event) => {
         const selectedGenre = event.target.value;
-e
         setGenre(selectedGenre);
     };
 
