@@ -28,6 +28,11 @@ CREATE TABLE users (
 );
 ```
 
+# Ensure users ID increment correctly
+```
+ALTER TABLE users ALTER COLUMN id SET DEFAULT nextval('users_id_seq');
+```
+
 # Add the data to the table for Books
 ```
 INSERT INTO books (id, api_id, favorited_by, title)
