@@ -33,8 +33,7 @@ const Books = () => {
                 const data = await response.json();
                 // set the books and filtered books variables
                 setBooks(data);
-                setFilteredBooks(data); // Show all books initially
-                console.log("Fetched Books:", data); // Log fetched books
+                setFilteredBooks(data);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -47,14 +46,14 @@ const Books = () => {
 
     useEffect(() => {
         if (search) {
-            // Filter books by title with case-insensitive search
+            // filter the books from what is typed and matches titles
             const filtered = books.filter((book) =>
                 book.title.toLowerCase().includes(search.toLowerCase())
             );
             // update the filtered books state
             setFilteredBooks(filtered);
         } else {
-            // If no search, show all books
+            // otherwise show all the books
             setFilteredBooks(books);
         }
         // this line makes this function run whenever the search or books state changes
@@ -151,8 +150,6 @@ const Books = () => {
             setFilteredBooks(books);
         }
     };
-    
-    
 
     // while data is loading display a loading message
     if (loading) {
