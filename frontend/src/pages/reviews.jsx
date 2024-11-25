@@ -4,9 +4,11 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 const Reviews = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const currentUser = location.state?.user; // Retrieve user from location state
+    // Retrieve user from location state
+    const currentUser = location.state?.user;
 
-    console.log("Current User:", currentUser); // Debug log
+    console.log("Current User:", currentUser);
+    // set variables and the useStates for them
     const { bookId } = useParams(); 
     const [bookTitle, setBookTitle] = useState("");
     const [reviews, setReviews] = useState([]);
@@ -23,13 +25,17 @@ const Reviews = () => {
     useEffect(() => {
         const fetchReviews = async () => {
             try {
+                // send a GET request to the backend
                 const response = await fetch(
                     `http://localhost:3000/books/${bookId}/reviews`
                 );
                 if (!response.ok) {
                     throw new Error("Failed to fetch reviews");
                 }
+                // store the response in the data variable as json
                 const data = await response.json();
+
+                // set the book title and reviews
                 setBookTitle(data.title);
                 setReviews(data.reviews);
             } catch (err) {
@@ -40,6 +46,7 @@ const Reviews = () => {
         };
 
         fetchReviews();
+        // set it so this only updates when the bookId changes
     }, [bookId]);
 
     // Handle form input changes
@@ -50,9 +57,11 @@ const Reviews = () => {
 
     // Handle form submission
     const handleSubmit = async (e) => {
+        // allows us to handle the submission with javascript instead of the default
         e.preventDefault();
 
         try {
+            // send a POST request to the backend
             const response = await fetch(
                 `http://localhost:3000/books/${bookId}/reviews`,
                 {
@@ -64,7 +73,10 @@ const Reviews = () => {
             if (!response.ok) {
                 throw new Error("Failed to submit review");
             }
+            // set the data variable with the response value as json
             const data = await response.json();
+
+            // set the review and form data
             setReviews(data.reviews);
             setFormData({ author: "", title: "", review_content: "", score: 1 });
         } catch (err) {
@@ -72,6 +84,7 @@ const Reviews = () => {
         }
     };
 
+    // display the loading message
     if (loading) {
         return <div>Loading reviews...</div>;
     }
@@ -92,12 +105,14 @@ const Reviews = () => {
                 </button>
             </div>
 
+            {/*Display the book title*/}
             <h1>Reviews for "{bookTitle}"</h1>
             <div id="reviews-section">
                 {reviews.length > 0 ? (
                     <>
                         <h2>Existing Reviews:</h2>
                         <ul>
+                            {/*Display the reviews and info associated*/}
                             {reviews.map((review) => (
                                 <li key={review.id}>
                                     <strong>Author:</strong> {review.author}
@@ -117,8 +132,10 @@ const Reviews = () => {
                 )}
             </div>
             <div id="new-review-form">
+                {/*Create the form to submit a review*/}
                 <h2>Submit a New Review</h2>
                 <form onSubmit={handleSubmit}>
+                    {/*create area for author*/}
                     <label htmlFor="author">Author:</label>
                     <input
                         type="text"
@@ -130,6 +147,7 @@ const Reviews = () => {
                     />
                     <br />
 
+                    {/*create area for title*/}
                     <label htmlFor="title">Title:</label>
                     <input
                         type="text"
@@ -141,6 +159,7 @@ const Reviews = () => {
                     />
                     <br />
 
+                    {/*create area for review content*/}
                     <label htmlFor="review_content">Review:</label>
                     <textarea
                         id="review_content"
@@ -151,6 +170,7 @@ const Reviews = () => {
                     ></textarea>
                     <br />
 
+                    {/*create area for score*/}
                     <label htmlFor="score">Score (1-5):</label>
                     <input
                         type="number"
@@ -164,6 +184,7 @@ const Reviews = () => {
                     />
                     <br />
 
+                    {/*Submit button for the form*/}
                     <button type="submit">Submit Review</button>
                 </form>
             </div>

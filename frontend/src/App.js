@@ -10,6 +10,7 @@ import Home from "./pages/home";
 
 const App = () => {
     return (
+        // this creates the routes for the app
         <Router>
             <div>
                 <Routes>
