@@ -5,24 +5,35 @@ import './styles.css';
 const SignIn = () => {
     // set the variables and useStates
     const [formData, setFormData] = useState({ username: '', password: '' });
+    
+    // holds Error message data
     const [error, setError] = useState('');
+    
+    // holds Success messgae data
     const [success, setSuccess] = useState('');
+    
+    // used for routing and naviagting to new pages
     const navigate = useNavigate(); 
 
     // Handle input changes
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+    const handleChange = (event) => {
+        // variables to save indavidual data 
+        const { name, value } = event.target;
+        // saves the data to the formData variable to be passed and checked.
         setFormData({ ...formData, [name]: value });
     };
 
     // Handle form submission
-    const handleSubmit = async (e) => {
-        e.preventDefault(); 
+    const handleSubmit = async (event) => {
+        // prevents reloading the page on submit 
+        event.preventDefault(); 
+
+        // variable for Success or Error based on what happens
         setError('');
         setSuccess('');
 
         try {
-            // send a POST request to the backend to sign in
+            // try to route to backend at singup to save user using POST
             const response = await fetch('http://localhost:3000/signin', {
                 method: 'POST',
                 headers: {
@@ -32,10 +43,14 @@ const SignIn = () => {
                 body: JSON.stringify(formData),
             });
 
-            // if the response returns ok sign the user in
+            // if the response is okay or 200 
             if (response.ok) {
+                // save data from form to send to backend
                 const data = await response.json();
+
+                // print message saying sign up was successful
                 setSuccess('Sign-in successful!');
+                
                 console.log('User:', data.user);
                 // Redirect to the books page
                 setTimeout(() => {
@@ -52,6 +67,7 @@ const SignIn = () => {
         }
     };
 
+    // HTML return for rendering this Page
     return (
         <div className="container">
             <h1>Sign In</h1>
