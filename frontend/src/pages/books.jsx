@@ -33,7 +33,8 @@ const Books = () => {
                 const data = await response.json();
                 // set the books and filtered books variables
                 setBooks(data);
-                setFilteredBooks(data);
+                setFilteredBooks(data); // Show all books initially
+                console.log("Fetched Books:", data); // Log fetched books
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -46,14 +47,14 @@ const Books = () => {
 
     useEffect(() => {
         if (search) {
-            // filter the books from what is typed and matches titles
+            // Filter books by title with case-insensitive search
             const filtered = books.filter((book) =>
                 book.title.toLowerCase().includes(search.toLowerCase())
             );
             // update the filtered books state
             setFilteredBooks(filtered);
         } else {
-            // otherwise show all the books
+            // If no search, show all books
             setFilteredBooks(books);
         }
         // this line makes this function run whenever the search or books state changes
@@ -73,7 +74,7 @@ const Books = () => {
                 // add the book ID and user ID to the body of the POST
                 body: JSON.stringify({ book_id: bookId, user_id: userId }),
             });
-    
+
             if (!response.ok) {
                 throw new Error("Failed to favorite the book.");
             }
@@ -98,7 +99,6 @@ const Books = () => {
             console.error("Error favoriting the book:", error);
         }
     };
-    
 
     const handleLogout = async () => {
         try {
@@ -121,12 +121,38 @@ const Books = () => {
     const handleSearchChange = (event) => {
         setSearch(event.target.value);
     };
-
+    
     // function to handle the genre changes
-    const handleGenreChange = (event) => {
-        const selectedGenre = event.target.value;
-        setGenre(selectedGenre);
+    const handleGenreChange = async (event) => {
+        const genre = event.target.value;
+        setGenre(genre);
+    
+        if (genre) {
+            try {
+                // makes a GET request to the backend for sorting categories
+                const response = await fetch(`http://localhost:3000/books-by-category/${genre}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch books by genre");
+                }
+                const data = await response.json();
+    
+                // filters the existing books by the sorted books by category
+                // matches by the title
+                const matchedBooks = books.filter((book) =>
+                    data.some((item) => item.volumeInfo.title === book.title)
+                );
+    
+                // updates the filtered books
+                setFilteredBooks(matchedBooks);
+            } catch (error) {
+                setError(error.message);
+            }
+        } else {
+            setFilteredBooks(books);
+        }
     };
+    
+    
 
     // while data is loading display a loading message
     if (loading) {
