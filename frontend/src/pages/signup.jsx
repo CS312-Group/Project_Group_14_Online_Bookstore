@@ -21,16 +21,20 @@ const Signup = () => {
         setSuccess("");
 
         try {
+            // send a POST request to the backend /signup
             const response = await fetch("http://localhost:3000/signup", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
+                // send the form data as a json
                 body: JSON.stringify(formData),
             });
 
+            // if successful redirect the user to the signin page
             if (response.ok) {
                 setSuccess("Sign-up successful! Redirecting to sign-in...");
+                // redirect the user to the signin page
                 setTimeout(() => {
                     navigate("/signin");
                 }, 2000);

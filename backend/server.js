@@ -16,9 +16,11 @@ const __dirname = path.dirname(__filename);
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// sets this to go to the front end
 app.use(cors({
-    origin: 'http://localhost:3001', // Replace with your React app's URL
-    credentials: true, // Allow cookies to be sent
+    origin: 'http://localhost:3001',
+    credentials: true,
   }));
 
  // React build folder
@@ -50,6 +52,7 @@ async function userNameExists(username) {
 // Sign In
 app.post("/signin", async (req, res) => {
     try {
+        // get the username and password from the body
         const { username, password } = req.body;
 
         // Query the database for the user
@@ -58,10 +61,12 @@ app.post("/signin", async (req, res) => {
             [username, password]
         );
 
+        // if the username and password didnt exists return an error message
         if (result.rowCount === 0) {
             return res.status(401).json({ error: "Invalid username or password" });
         }
 
+        // set the user and display success
         const user = result.rows[0];
         res.status(200).json({ message: "Signin successful", user });
     } catch (error) {
@@ -73,13 +78,16 @@ app.post("/signin", async (req, res) => {
 
 // Sign Up
 app.post("/signup", async (req, res) => {
+    // get the username and password from the body
     const { username, password } = req.body;
 
     try {
+        // check if the username already exists
         if (await userNameExists(username)) {
             return res.status(400).json({ error: "Username already exists" });
         }
 
+        // insert the username and password into the database
         await db.query("INSERT INTO users (username, password) VALUES ($1, $2)", [username, password]);
         res.status(201).json({ message: "Signup successful" });
     } catch (error) {
@@ -99,6 +107,7 @@ app.get('/books', async (req, res) => {
         // Loop through each book and fetch details from Google Books API
         const books = await Promise.all(
             queryResult.rows.map(async (book) => {
+                // request the book info from the google api
                 const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${book.api_id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
                 
                 // get the average of the scores from the reviews
@@ -107,6 +116,7 @@ app.get('/books', async (req, res) => {
                     [book.id]
                 );
 
+                // set the average score
                 const averageScore = avgScoreResult.rows[0]?.average_score || null;
 
                 console.log(avgScoreResult)
@@ -115,6 +125,7 @@ app.get('/books', async (req, res) => {
                 const favoritedByIds = book.favorited_by || [];
                 let favoritedByUsernames = [];
 
+                // find the information about the users in the favorited array
                 if (favoritedByIds.length > 0) {
                     const userQuery = await db.query(
                         "SELECT username FROM users WHERE id = ANY($1)",
@@ -123,6 +134,7 @@ app.get('/books', async (req, res) => {
                     favoritedByUsernames = userQuery.rows.map(row => row.username);
                 }
 
+                // return the information about the books
                 return {
                     id: book.id, 
                     title: response.data.volumeInfo.title,
@@ -147,6 +159,7 @@ app.post('/favorite', async (req, res) => {
     const { book_id, user_id } = req.body;
 
     try {
+        // add a user to the favorited by array
         await db.query(
             "UPDATE books SET favorited_by = array_append(favorited_by, $1) WHERE id = $2 AND NOT ($1 = ANY(favorited_by))",
             [user_id, book_id]
@@ -159,8 +172,11 @@ app.post('/favorite', async (req, res) => {
     }
 });
 
+// POST to add a review to book
 app.post('/books/:bookId/reviews', async (req, res) => {
+    // get the book id
     const bookId = parseInt(req.params.bookId);
+    // get the review content from the body
     const { author, title, review_content, score } = req.body;
 
     try {
@@ -235,9 +251,13 @@ app.get('/books/:bookId/reviews', async (req, res) => {
     }
 });
 
+// GET for the category of books
+// GET to search by genre
 app.get('/books-by-category/:category', async (req, res) => {
+    // get the category 
     const { category } = req.params;
     const matchingBooks = [];
+    // get the api_ids to check the genres
     const queryResult = await db.query("SELECT api_id FROM books");
     const books = queryResult.rows;
     let index = 0;
@@ -246,6 +266,7 @@ app.get('/books-by-category/:category', async (req, res) => {
       // Iterate over the book IDs
       for (const bookId of books) {
         const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${bookId.api_id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
+        // store the api response in the bookData
         const bookData = response.data;
   
         // Check if the categories array contains the desired category
@@ -265,10 +286,14 @@ app.get('/books-by-category/:category', async (req, res) => {
     }
   });
 
+  // GET request for searching for a book by name
   app.get('/books-by-name/:name', async (req, res) => {
     try {
+        // get the name from the parameter
         const { name } = req.params;
+        // query the database for books with a matching title
         const queryResult = await db.query("SELECT * FROM books WHERE title = $1", [name]);
+        // go through the query results and make api calls for each of the books
         const books = await Promise.all(
             queryResult.rows.map(async (book) => {
                 const response = await axios.get(`https://www.googleapis.com/books/v1/volumes/${book.api_id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`);
@@ -285,6 +310,7 @@ app.get('/books-by-category/:category', async (req, res) => {
                     favoritedByUsernames = userQuery.rows.map(row => row.username);
                 }
 
+                // send back the information about the book
                 return {
                     id: book.id, 
                     title: response.data.volumeInfo.title,
